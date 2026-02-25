@@ -472,6 +472,11 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
   background: rgba(60,40,20,0.6); z-index: 300; overflow: auto;
   padding: 30px; backdrop-filter: blur(4px);
 }
+@media (max-width: 768px) {
+  #preview-modal { padding: 12px 8px; }
+  .preview-toolbar { flex-wrap: wrap; gap: 8px; }
+  .preview-toolbar h2 { font-size: 15px; }
+}
 .preview-inner { max-width: 1140px; margin: 0 auto; }
 .preview-toolbar {
   display: flex; justify-content: space-between; align-items: center;
@@ -479,7 +484,7 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 }
 .preview-toolbar h2 { color: #fff; font-size: 17px; }
 .preview-close { background: rgba(255,255,255,0.15); border: none; color: #fff; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif; }
-#preview-content { background: #fff; border-radius: 12px; padding: 24px; font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif; }
+#preview-content { background: #fff; border-radius: 12px; padding: 24px; font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif; overflow-x: auto; }
 
 /* ── FLOATING PREVIEW ── */
 .fab {
@@ -1670,7 +1675,92 @@ function generatePreviewHTML(d) {
     `<li style="margin-bottom:4px;padding-left:2px;">${s}</li>`
   ).join('');
 
-  return `<div style="border:2px solid #005BAC;border-radius:10px;overflow:hidden;font-size:12px;font-family:'Noto Sans TC',sans-serif;line-height:1.6;">
+  const isMobile = window.innerWidth < 768;
+
+  if (isMobile) {
+    // ── 手機版：直排卡片式 ──
+    const ruleCard = (rules, color, labelPrefix) =>
+      (rules||[]).filter(r => r.main).map((r, i) => {
+        const parts = (r.hint||'').split('||');
+        const cond = parts[0]?.trim(); const voice = parts[1]?.trim();
+        return `<div style="margin-bottom:8px;padding:8px 10px;background:#fff;border-radius:8px;border-left:3px solid ${color};">
+          <div style="font-size:11px;font-weight:700;color:${color};margin-bottom:4px;">${labelPrefix} ${i+1}</div>
+          <div style="font-size:13px;color:#0C1C2E;">${r.main}</div>
+          ${cond  ? `<div style="font-size:11px;color:#003E7E;margin-top:4px;"><b>成立條件：</b>${cond}</div>` : ''}
+          ${voice ? `<div style="font-size:11px;color:#003E7E;"><b>播報語音：</b>${voice}</div>` : ''}
+        </div>`;
+      }).join('');
+
+    const infoRows = [
+      d.holdTime      && ['維持時間', d.holdTime + ' 秒'],
+      d.postureType   && ['動作姿態', d.postureType],
+      d.postureJudge  && ['維持姿勢判斷', d.postureJudge],
+      d.cameraDir     && ['影片拍攝方向', d.cameraDir],
+      d.countRule     && ['計數規則', d.countRule],
+    ].filter(Boolean).map(([k, v]) =>
+      `<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid #EEF5FB;">
+        <div style="font-size:12px;font-weight:700;color:#2E4E6E;min-width:90px;">${k}</div>
+        <div style="font-size:13px;color:#0C1C2E;">${v}</div>
+      </div>`
+    ).join('');
+
+    const allImgs = [
+      ...imgSlotConfig.map(s => ({ id: s.id, caption: s.caption })),
+      ...extraSlots.map(s => ({ id: s.id, caption: s.caption }))
+    ];
+    const hasImg = allImgs.some(s => imgData[s.id]);
+
+    return `<div style="font-family:'Noto Sans TC',sans-serif;font-size:13px;line-height:1.6;color:#0C1C2E;max-width:100%;overflow-x:hidden;">
+
+      ${d.applyUnit ? `<div style="background:#EEF5FB;padding:8px 12px;border-radius:8px;margin-bottom:10px;font-size:12px;color:#2E4E6E;"><b>申請單位：</b>${d.applyUnit}</div>` : ''}
+
+      <div style="background:#005BAC;color:#fff;padding:12px 14px;border-radius:10px;margin-bottom:10px;">
+        <div style="font-size:16px;font-weight:700;">動作名稱：${d.name||'—'}</div>
+        ${d.indication ? `<div style="font-size:12px;margin-top:4px;opacity:0.85;">建議適應症：${d.indication}</div>` : ''}
+      </div>
+
+      ${d.steps && d.steps.length ? `
+      <div style="background:#F3F8FD;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;color:#2E4E6E;margin-bottom:8px;">動作拆解說明</div>
+        <ol style="margin:0 0 0 18px;padding:0;">${stepsHTML}</ol>
+      </div>` : ''}
+
+      <div style="background:#F3F8FD;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;color:#2E4E6E;margin-bottom:8px;">基本資訊</div>
+        ${infoRows || '<div style="color:#999;font-size:12px;">（未填寫）</div>'}
+      </div>
+
+      ${(d.startRules||[]).some(r=>r.main) ? `
+      <div style="background:#F3F8FD;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;color:#00875A;margin-bottom:8px;">初始動作規則</div>
+        ${ruleCard(d.startRules, '#00875A', '規則')}
+      </div>` : ''}
+
+      ${(d.targetRules||[]).some(r=>r.main) ? `
+      <div style="background:#F3F8FD;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;color:#005BAC;margin-bottom:8px;">目標動作規則</div>
+        ${ruleCard(d.targetRules, '#005BAC', '規則')}
+      </div>` : ''}
+
+      ${(d.errorRules||[]).some(r=>r.main) ? `
+      <div style="background:#FFF8F8;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;color:#C82828;margin-bottom:8px;">常見錯誤動作</div>
+        ${ruleCard(d.errorRules, '#C82828', '說明')}
+      </div>` : ''}
+
+      ${hasImg ? `
+      <div style="background:#F3F8FD;border-radius:10px;padding:12px 14px;">
+        <div style="font-size:12px;font-weight:700;color:#2E4E6E;margin-bottom:10px;">動作截圖</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          ${allImgs.map(s => imgHTML(s.id, s.caption)).join('')}
+        </div>
+      </div>` : ''}
+
+    </div>`;
+
+  } else {
+    // ── 桌機版：原本的表格式佈局 ──
+    return `<div style="border:2px solid #005BAC;border-radius:10px;overflow:auto;font-size:12px;font-family:'Noto Sans TC',sans-serif;line-height:1.6;min-width:640px;">
     ${d.applyUnit ? `<div style="background:#EEF5FB;padding:6px 14px;font-size:11px;color:#2E4E6E;border-bottom:1px solid #C4D9EE;"><b>申請單位：</b>${d.applyUnit}</div>` : ''}
     <div style="display:grid;grid-template-columns:180px 1fr;border-bottom:2px solid #005BAC;">
       <div style="background:#005BAC;color:white;padding:14px;font-weight:700;font-size:15px;display:flex;flex-direction:column;justify-content:center;gap:6px;">
@@ -1733,6 +1823,7 @@ function generatePreviewHTML(d) {
       ].map(s => imgHTML(s.id, s.caption)).join('')}
     </div>
   </div>`;
+  }
 }
 
 // ══════════════════════════════════════════════
