@@ -1,0 +1,2051 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RCS_motion template_v7</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+:root {
+  /* ── Delta Electronics Brand Palette ── */
+  --delta-blue:  #005BAC;
+  --delta-blue2: #0072CE;
+  --delta-blue3: #003E7E;
+  --delta-sky:   #E6F1FA;
+  --delta-sky2:  #CCE4F6;
+
+  --bg:          #F3F8FD;
+  --bg2:         #E8F2FA;
+  --surface:     #FFFFFF;
+  --surface2:    #EEF5FB;
+  --surface3:    #E0EDF8;
+  --border:      #C4D9EE;
+  --border2:     #9BBFDF;
+  --accent:      #005BAC;
+  --accent-light:#E6F1FA;
+  --accent2:     #0099D6;
+  --accent3:     #00875A;
+  --text:        #0C1C2E;
+  --text2:       #2E4E6E;
+  --text3:       #7090AE;
+  --danger:      #C82828;
+  --warn:        #C07800;
+  --info:        #0072CE;
+  --shadow:      0 2px 12px rgba(0,50,110,0.09);
+  --shadow-md:   0 4px 24px rgba(0,50,110,0.14);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ── HEADER ── */
+.header {
+  background: linear-gradient(90deg, #003E7E 0%, #005BAC 60%, #0072CE 100%);
+  border-bottom: 3px solid #0099D6;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: 0 2px 16px rgba(0,40,100,0.25);
+}
+
+.logo-wrap { display: flex; align-items: center; gap: 14px; }
+.logo-icon {
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo-title { font-size: 15px; font-weight: 700; color: #FFFFFF; letter-spacing: 0.3px; }
+.logo-sub { font-size: 11px; color: rgba(255,255,255,0.65); letter-spacing: 1.5px; font-weight: 400; margin-top: 1px; }
+
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+  font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif; font-size: 13px; font-weight: 500;
+  transition: all 0.18s ease; white-space: nowrap;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-ghost {
+  background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9);
+  border: 1.5px solid rgba(255,255,255,0.35);
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.22); color: #fff; border-color: rgba(255,255,255,0.7); }
+
+.btn-primary { background: #0099D6; color: #fff; box-shadow: 0 2px 8px rgba(0,100,180,0.3); }
+.btn-primary:hover { background: #007AB8; box-shadow: 0 4px 14px rgba(0,100,180,0.4); }
+
+.btn-jpg { background: linear-gradient(135deg, #D63030, #A82020); color: #fff; }
+.btn-pdf { background: linear-gradient(135deg, #005BAC, #003E7E); color: #fff; }
+.btn-jpg:hover { box-shadow: 0 4px 14px rgba(200,30,30,0.35); }
+.btn-pdf:hover { box-shadow: 0 4px 14px rgba(0,60,140,0.4); }
+
+.spinner { display:none; width:15px; height:15px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.processing .spinner { display: block; }
+.processing .btn-text { display: none; }
+
+/* Draft buttons */
+.draft-sep { width: 1px; height: 28px; background: var(--border); margin: 0 4px; }
+
+/* ── MAIN LAYOUT ── */
+.container { max-width: 1360px; margin: 0 auto; padding: 28px 40px 80px; display: grid; gap: 20px; }
+
+/* ── SECTION HEADER ── */
+.section-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 14px;
+}
+.section-tag::before { content: ''; display: block; width: 16px; height: 2px; background: var(--accent); border-radius: 2px; }
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px; padding-bottom: 14px;
+  border-bottom: 1.5px solid var(--border);
+}
+.card-stripe { width: 4px; height: 20px; border-radius: 4px; flex-shrink: 0; }
+.card h2 { font-size: 15px; font-weight: 700; color: var(--text); }
+.card-sub { font-size: 12px; color: var(--text3); margin-left: auto; }
+
+/* ── FORM FIELDS ── */
+.field { display: flex; flex-direction: column; gap: 5px; }
+label { font-size: 12px; color: var(--text2); font-weight: 600; letter-spacing: 0.2px; }
+.required { color: var(--danger); }
+
+
+
+/* ── HELP MODAL ── */
+#help-modal {
+  display: none; position: fixed; inset: 0; z-index: 3000;
+  background: rgba(0,30,70,0.55); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+}
+#help-modal.open { display: flex; }
+.help-inner {
+  background: #fff; border-radius: 16px;
+  width: min(720px, 95vw); max-height: 88vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,40,120,0.25);
+  overflow: hidden;
+}
+.help-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 24px 14px; border-bottom: 1.5px solid var(--border);
+  background: var(--accent); color: #fff;
+}
+.help-header h3 { font-size: 16px; font-weight: 700; }
+.help-close {
+  background: none; border: none; cursor: pointer;
+  font-size: 20px; color: rgba(255,255,255,0.8); padding: 2px 6px; border-radius: 6px;
+}
+.help-close:hover { background: rgba(255,255,255,0.2); color: #fff; }
+.help-body { overflow-y: auto; padding: 0 24px 24px; }
+.help-section { margin-top: 24px; }
+.help-section h4 {
+  font-size: 13px; font-weight: 700; color: var(--accent);
+  margin-bottom: 12px; padding-bottom: 6px;
+  border-bottom: 1.5px solid var(--border);
+}
+.help-steps { display: flex; flex-direction: column; gap: 10px; }
+.help-step {
+  display: grid; grid-template-columns: 36px 1fr;
+  gap: 12px; align-items: start;
+}
+.help-step-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; flex-shrink: 0;
+}
+.help-step-body strong { font-size: 13px; color: var(--text); display: block; margin-bottom: 2px; }
+.help-step-body p { font-size: 12px; color: var(--text2); margin: 0; line-height: 1.5; }
+.help-note {
+  background: var(--accent-light); border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0; padding: 8px 12px; margin-top: 8px;
+  font-size: 12px; color: var(--text2); line-height: 1.5;
+}
+.help-note.warn { background: #FFF8E6; border-left-color: #C88A00; color: #6B4800; }
+.help-note.ok   { background: #E8F5EE; border-left-color: #00875A; color: #005234; }
+
+input[type=text], input[type=number], select, textarea {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif;
+  font-size: 14px;
+  padding: 9px 12px;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  outline: none;
+  width: 100%;
+  appearance: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(192,122,69,0.12);
+  background: #fff;
+}
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a6555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+
+/* ── STEP LIST (動作說明) ── */
+.step-list { display: flex; flex-direction: column; gap: 8px; }
+.step-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 6px 8px 6px 10px;
+  transition: border-color 0.18s;
+}
+.step-item:focus-within { border-color: var(--accent); background: #fff; }
+.step-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--delta-blue); color: #fff;
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+}
+.step-item input {
+  background: transparent; border: none; padding: 2px 4px;
+  font-size: 14px; flex: 1; box-shadow: none;
+}
+.step-item input:focus { box-shadow: none; }
+.step-del {
+  width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border2);
+  background: var(--surface); color: var(--text3);
+  cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.step-del:hover { background: #fde8e8; color: var(--danger); border-color: var(--danger); }
+.add-step-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 8px;
+  border: 1.5px dashed var(--border2);
+  background: transparent; color: var(--text2);
+  cursor: pointer; font-size: 13px; font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif;
+  transition: all 0.18s; width: fit-content; margin-top: 4px;
+}
+.add-step-btn:hover { border-color: var(--delta-blue); color: var(--delta-blue); background: var(--delta-sky); }
+
+/* ── RULE CARDS ── */
+.rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.rule-card { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 12px; padding: 18px; }
+.rule-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; margin-bottom: 14px; }
+.badge-start  { background: rgba(58,158,120,0.10); color: var(--accent3); border: 1.5px solid rgba(58,158,120,0.25); }
+.badge-target { background: rgba(74,127,192,0.10); color: var(--info);    border: 1.5px solid rgba(74,127,192,0.25); }
+.badge-error  { background: rgba(214,64,64,0.10);  color: var(--danger);  border: 1.5px solid rgba(214,64,64,0.25); }
+.badge-other  { background: rgba(200,138,48,0.10); color: var(--warn);    border: 1.5px solid rgba(200,138,48,0.25); }
+
+.rule-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+.rule-item {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 10px 12px;
+  position: relative; transition: border-color 0.18s;
+}
+.rule-item:focus-within { border-color: var(--delta-blue); }
+.rule-item-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.rule-item-num { font-size: 11px; font-weight: 700; color: var(--text3); }
+.rule-item-del {
+  width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border2);
+  background: var(--surface); color: var(--text3); cursor: pointer;
+  font-size: 12px; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.rule-item-del:hover { background: #fde8e8; color: var(--danger); border-color: var(--danger); }
+.add-rule-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 8px;
+  border: 1.5px dashed var(--border2);
+  background: transparent; color: var(--text2);
+  cursor: pointer; font-size: 12px; font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif;
+  transition: all 0.18s; width: fit-content; margin-top: 4px;
+}
+.add-rule-btn:hover { border-color: var(--delta-blue); color: var(--delta-blue); background: var(--delta-sky); }
+
+/* ── VIDEO UPLOAD ── */
+.video-zone {
+  border: 2px dashed var(--border2);
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface2);
+  position: relative;
+}
+.video-zone:hover { border-color: var(--accent); background: var(--accent-light); }
+.video-zone.has-video { border-style: solid; border-color: var(--accent); }
+.video-icon { font-size: 40px; margin-bottom: 10px; opacity: 0.6; }
+.video-zone h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.video-zone p { font-size: 12px; color: var(--text3); }
+
+#video-preview-wrap {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+#video-el { width: 100%; max-height: 260px; border-radius: 10px; background: #000; }
+
+/* Timeline scrubber */
+.timeline-wrap { position: relative; }
+.timeline-bar {
+  width: 100%; height: 56px;
+  border-radius: 8px; overflow: hidden;
+  background: #1a1a1a; cursor: crosshair;
+  border: 1.5px solid var(--border2);
+  position: relative;
+}
+#timeline-canvas { width: 100%; height: 100%; display: block; }
+.timeline-needle {
+  position: absolute; top: 0; bottom: 0; width: 2px;
+  background: var(--accent); pointer-events: none;
+  transition: left 0.05s linear;
+}
+.needle-label {
+  position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+  background: var(--accent); color: #fff; font-size: 10px; font-weight: 700;
+  padding: 2px 5px; border-radius: 4px; white-space: nowrap;
+}
+
+.frame-slots-label { font-size: 12px; color: var(--text2); font-weight: 600; margin-bottom: 8px; }
+.frame-slots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+
+.frame-slot {
+  border-radius: 10px; overflow: hidden;
+  border: 2px dashed var(--border2);
+  background: var(--surface3);
+  cursor: pointer; transition: all 0.2s;
+  position: relative; aspect-ratio: 3/4;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.frame-slot:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.frame-slot.captured { border-style: solid; border-color: var(--accent3); }
+.frame-slot img { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; background: #e8f0f8; }
+.frame-slot-icon { font-size: 22px; opacity: 0.4; margin-bottom: 6px; }
+.frame-slot-lbl { font-size: 10px; color: var(--text3); text-align: center; padding: 4px; }
+.frame-slot-cap { font-size: 11px; color: var(--accent); font-weight: 600; text-align: center; margin-top: 6px; }
+.frame-capture-btn {
+  position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+  background: var(--accent); color: #fff; border: none; border-radius: 6px;
+  padding: 3px 10px; font-size: 10px; font-weight: 700;
+  cursor: pointer; font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif;
+  opacity: 0; transition: opacity 0.15s; z-index: 2;
+  white-space: nowrap;
+}
+.frame-slot:hover .frame-capture-btn { opacity: 1; }
+.frame-slot.captured .frame-capture-btn { background: var(--accent3); }
+.frame-remove-btn {
+  position: absolute; top: 5px; right: 5px;
+  width: 20px; height: 20px;
+  background: rgba(214,64,64,0.85); color: #fff;
+  border: none; border-radius: 50%; font-size: 11px;
+  cursor: pointer; z-index: 3; display: none;
+  align-items: center; justify-content: center;
+}
+.frame-slot.captured .frame-remove-btn { display: flex; }
+
+.video-controls {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 10px 14px;
+}
+.vc-btn {
+  background: var(--surface3); border: 1.5px solid var(--border2); border-radius: 7px;
+  color: var(--text); padding: 5px 12px; cursor: pointer; font-size: 13px;
+  font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif; transition: all 0.15s;
+}
+.vc-btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+#vc-time { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); min-width: 90px; text-align: center; }
+.vc-speed select { background: var(--surface3); border: 1.5px solid var(--border2); color: var(--text); padding: 4px 8px; border-radius: 6px; font-size: 12px; }
+.vc-hint { font-size: 11px; color: var(--text3); margin-left: auto; }
+
+/* ── PHOTO UPLOAD SECTION ── */
+.img-upload-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.img-slot {
+  aspect-ratio: 3/4;
+  background: var(--surface2);
+  border: 2px dashed var(--border2);
+  border-radius: 10px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+}
+.img-slot:hover { border-color: var(--accent); background: var(--accent-light); }
+.img-slot.has-image { border-style: solid; border-color: var(--accent); }
+.img-slot img { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; background: #f0f4f8; }
+.img-slot-icon { font-size: 24px; opacity: 0.35; margin-bottom: 6px; position: relative; }
+.img-slot-label { font-size: 11px; color: var(--text3); text-align: center; padding: 6px; position: relative; }
+.img-slot.has-image .img-slot-icon, .img-slot.has-image .img-slot-label { display: none; }
+.img-remove {
+  position: absolute; top: 6px; right: 6px;
+  width: 22px; height: 22px;
+  background: rgba(214,64,64,0.88); color: #fff; border: none;
+  border-radius: 50%; font-size: 12px; cursor: pointer; z-index: 3;
+  display: none; align-items: center; justify-content: center;
+}
+.img-slot.has-image .img-remove { display: flex; }
+.img-from-video-tag {
+  position: absolute; bottom: 5px; left: 5px;
+  background: rgba(58,158,120,0.9); color: #fff;
+  font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
+  display: none;
+}
+.img-slot.from-video .img-from-video-tag { display: block; }
+.img-caption { font-size: 11px; color: var(--accent); font-weight: 600; text-align: center; margin-top: 6px; }
+
+/* ── DRAFT PANEL ── */
+#draft-panel {
+  display: none;
+  position: fixed; top: 64px; right: 0; bottom: 0; width: 320px;
+  background: var(--surface); border-left: 2px solid var(--border);
+  z-index: 150; box-shadow: -4px 0 24px rgba(150,100,60,0.12);
+  flex-direction: column;
+  animation: slideIn 0.22s ease;
+}
+@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.draft-panel-header {
+  padding: 18px 20px 14px;
+  border-bottom: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.draft-panel-header h3 { font-size: 15px; font-weight: 700; }
+.draft-close { background: none; border: none; cursor: pointer; font-size: 18px; color: var(--text3); padding: 4px; border-radius: 6px; }
+.draft-close:hover { background: var(--surface3); }
+.draft-save-area { padding: 14px 20px; border-bottom: 1.5px solid var(--border); display: flex; gap: 8px; }
+.draft-save-area input { flex: 1; }
+.draft-list { flex: 1; overflow-y: auto; padding: 12px 20px; display: flex; flex-direction: column; gap: 8px; }
+.draft-empty { text-align: center; color: var(--text3); font-size: 13px; padding: 32px 0; }
+.draft-item {
+  background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; cursor: pointer; transition: all 0.15s;
+}
+.draft-item:hover { border-color: var(--accent); background: var(--accent-light); }
+.draft-item-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.draft-item-meta { font-size: 11px; color: var(--text3); margin-top: 3px; }
+.draft-item-actions { display: flex; gap: 6px; margin-top: 8px; }
+.draft-load { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif; }
+.draft-del { background: #fde8e8; color: var(--danger); border: 1.5px solid rgba(214,64,64,0.2); border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--text); color: #fff; padding: 10px 20px;
+  border-radius: 30px; font-size: 13px; font-weight: 500;
+  opacity: 0; transition: all 0.25s; z-index: 9999; pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── PREVIEW MODAL ── */
+#preview-modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(60,40,20,0.6); z-index: 300; overflow: auto;
+  padding: 30px; backdrop-filter: blur(4px);
+}
+.preview-inner { max-width: 1140px; margin: 0 auto; }
+.preview-toolbar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+}
+.preview-toolbar h2 { color: #fff; font-size: 17px; }
+.preview-close { background: rgba(255,255,255,0.15); border: none; color: #fff; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif; }
+#preview-content { background: #fff; border-radius: 12px; padding: 24px; font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif; }
+
+/* ── FLOATING PREVIEW ── */
+.fab {
+  position: fixed; bottom: 28px; right: 28px;
+  background: linear-gradient(135deg, #005BAC, #0099D6);
+  color: #fff; border: none; border-radius: 50px;
+  padding: 13px 22px; font-size: 14px; font-weight: 700;
+  font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif;
+  cursor: pointer; box-shadow: 0 6px 24px rgba(0,60,150,0.40);
+  z-index: 100; display: flex; align-items: center; gap: 8px;
+  transition: all 0.2s;
+}
+.fab:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(0,60,150,0.50); }
+
+.hint { font-size: 11px; color: var(--text3); margin-top: 8px; font-style: italic; }
+
+/* ── VIDEO UPLOAD INITIAL ── */
+#video-initial { display: block; }
+
+@media (max-width: 900px) {
+  .container { padding: 12px 12px 100px; gap: 14px; }
+  .card { padding: 16px; }
+  .rules-grid, .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .img-upload-row, .frame-slots { grid-template-columns: repeat(2, 1fr); }
+  .header { padding: 10px 14px; height: auto; gap: 6px;
+            flex-direction: column; align-items: stretch; }
+  .header-actions { flex-wrap: nowrap; gap: 5px; justify-content: stretch; }
+  .header-actions .btn { flex: 1; justify-content: center; }
+  .draft-sep { display: none; } /* 分隔線手機不顯示 */
+  .logo-sub { display: none; }
+  #draft-panel { width: 100%; }
+  .help-inner { width: 95vw; max-height: 92vh; }
+  .help-body { padding: 0 16px 20px; }
+  .video-controls { flex-wrap: wrap; gap: 6px; }
+  .vc-hint { display: none; }
+  .fab { bottom: 16px; right: 16px; padding: 11px 18px; font-size: 13px; }
+}
+
+@media (max-width: 480px) {
+  .btn-full-text { display: none; }
+  .btn-short-text { display: inline !important; }
+  .container { padding: 10px 10px 100px; }
+  .card { padding: 14px; border-radius: 10px; }
+  .card h2 { font-size: 14px; }
+  .logo-title { font-size: 13px; }
+  .btn { font-size: 11px; padding: 7px 6px; gap: 4px; }
+  label { font-size: 13px; }
+  input[type=text], input[type=number], select, textarea { font-size: 16px; padding: 10px 12px; }
+  .img-upload-row, .frame-slots { grid-template-columns: repeat(2, 1fr); }
+  .img-slot { min-height: 90px; }
+  .rules-grid { gap: 12px; }
+  .rule-card { padding: 14px; }
+  .step-item { padding: 8px 10px; }
+  .step-del, .rule-item-del { width: 32px; height: 32px; font-size: 13px; }
+  .draft-save-area { padding: 12px 14px; }
+  .draft-list { padding: 8px 14px; }
+  .draft-item { padding: 10px 12px; }
+  .video-controls { gap: 4px; }
+  .vc-btn { padding: 5px 8px; font-size: 12px; }
+  #vc-time { font-size: 11px; min-width: 70px; }
+  .frame-slot { min-height: 80px; }
+  .fab { bottom: 14px; right: 14px; padding: 10px 16px; font-size: 12px; }
+  .help-step-num { width: 30px; height: 30px; font-size: 13px; }
+  .help-step-body strong { font-size: 12px; }
+  .help-step-body p { font-size: 11px; }
+}
+
+/* ════════════════════════════════════════
+   ONBOARDING — Welcome Modal
+════════════════════════════════════════ */
+
+/* ════════════════════════════════════════
+   ONBOARDING — Step Tour
+════════════════════════════════════════ */
+#tour-overlay {
+  display: none; position: fixed; inset: 0; z-index: 3500;
+  pointer-events: none;
+}
+#tour-overlay.active {
+  display: block;
+  pointer-events: all; /* 導覽期間攔截所有背景點擊 */
+}
+
+/* Dark surround — single overlay with clip-path cutout */
+#tour-mask {
+  position: fixed; inset: 0;
+  background: rgba(0,15,45,0.82);
+  transition: clip-path 0.35s cubic-bezier(.3,.9,.4,1);
+  pointer-events: all; z-index: 3501;
+  clip-path: polygon(0% 0%, 0% 100%, 0% 100%, 0% 0%);
+}
+
+/* Spotlight hole — transparent border that glows */
+#tour-spotlight {
+  position: fixed; z-index: 3502;
+  border-radius: 12px;
+  box-shadow: 0 0 0 3px var(--accent), 0 0 0 5px rgba(0,91,172,0.25);
+  transition: all 0.35s cubic-bezier(.3,.9,.4,1);
+  pointer-events: none;
+  background: transparent;
+}
+
+/* Tooltip bubble */
+#tour-bubble {
+  position: fixed; z-index: 3503;
+  background: #fff; border-radius: 16px;
+  width: min(360px, 90vw);
+  box-shadow: 0 20px 60px rgba(0,20,80,0.45), 0 0 0 1px rgba(0,91,172,0.15);
+  padding: 0; overflow: hidden;
+  pointer-events: all;
+  /* 固定畫面正中間 */
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation: bubble-in 0.55s cubic-bezier(.16,1,.3,1);
+}
+@keyframes bubble-in {
+  from { transform: translate(-50%, -44%) scale(.88); opacity:0; }
+  to   { transform: translate(-50%, -50%) scale(1);   opacity:1; }
+}
+.tour-bubble-head {
+  background: linear-gradient(135deg, #005BAC, #0099D6);
+  padding: 12px 16px 10px; display: flex; align-items: center; gap: 10px;
+}
+.tour-bubble-step {
+  background: rgba(255,255,255,0.25); color: #fff;
+  font-size: 11px; font-weight: 700; padding: 2px 8px;
+  border-radius: 20px; white-space: nowrap;
+}
+.tour-bubble-title { color: #fff; font-size: 14px; font-weight: 700; }
+.tour-bubble-body { padding: 12px 16px 14px; }
+.tour-bubble-body p { font-size: 13px; color: var(--text); line-height: 1.6; margin: 0; }
+.tour-bubble-note {
+  background: #EEF5FB; border-radius: 8px; padding: 8px 10px; margin-top: 8px;
+  font-size: 11px; color: var(--text2); line-height: 1.5;
+}
+.tour-bubble-note.warn { background: #FFF8E6; color: #6B4800; }
+.tour-bubble-nav {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px 14px;
+}
+.tour-nav-btn {
+  padding: 7px 14px; border-radius: 8px; border: none;
+  cursor: pointer; font-size: 13px; font-weight: 600;
+  font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif;
+  transition: all 0.15s;
+}
+#tour-prev { background: #f0f4f8; color: var(--text2); }
+#tour-prev:hover { background: #e0e8f0; }
+#tour-next { background: linear-gradient(135deg,#005BAC,#0099D6); color:#fff; flex:1; }
+#tour-next:hover { opacity:.9; }
+#tour-skip { background: none; border: none; color: var(--text3); font-size: 12px;
+  cursor: pointer; margin-left: auto; padding: 4px 6px;
+  font-family: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', 'Noto Sans TC', sans-serif; }
+#tour-skip:hover { color: var(--text2); }
+
+/* Progress dots */
+.tour-dots { display: flex; gap: 5px; align-items: center; margin-right: 4px; }
+.tour-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #C4D9EE; transition: background 0.2s, transform 0.2s;
+}
+.tour-dot.active { background: var(--accent); transform: scale(1.3); }
+.tour-dot.done   { background: #0099D6; }
+
+/* Highlighted card pulse */
+.tour-highlight {
+  animation: tour-pulse 1.8s ease-in-out infinite;
+}
+@keyframes tour-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(0,91,172,0); }
+  50%      { box-shadow: 0 0 0 6px rgba(0,91,172,0.15); }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div class="logo-wrap">
+    <!-- Delta Triangle Logo (SVG) -->
+    <div>
+      <div class="logo-title">RCS 數位動作 線上模板</div>
+      <div class="logo-sub">DELTA ELECTRONICS — MOTION TEMPLATE</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" id="tour-btn" onclick="startTour()" style="background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.4);">🧭 <span class="btn-full-text">新手導覽</span><span class="btn-short-text" style="display:none;">導覽</span></button>
+    <button class="btn btn-ghost" onclick="toggleHelpModal()" style="background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.4);">📖 <span class="btn-full-text">操作說明</span><span class="btn-short-text" style="display:none;">說明</span></button>
+    <div class="draft-sep"></div>
+    <button class="btn btn-ghost" onclick="toggleDraftPanel()">📁 <span class="btn-full-text">草稿管理</span><span class="btn-short-text" style="display:none;">草稿</span></button>
+    <div class="draft-sep"></div>
+    <button class="btn btn-jpg" onclick="exportJPG(this)"><span class="btn-text">⬇ JPG</span><div class="spinner"></div></button>
+    <button class="btn btn-pdf" onclick="exportPDF(this)"><span class="btn-text">⬇ PDF</span><div class="spinner"></div></button>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="container">
+
+  <!-- 1. 基本資訊 -->
+  <div class="card" id="tour-basic">
+    <div class="card-header">
+      <div class="card-stripe" style="background:var(--accent3)"></div>
+      <h2>基本動作資訊</h2>
+      <span class="card-sub">BASIC INFO</span>
+    </div>
+    <div class="field" style="margin-bottom:16px;">
+      <label>申請單位 <span class="required">*</span></label>
+      <input type="text" id="apply-unit" placeholder="您的機構名稱" />
+    </div>
+    <div class="grid-2" style="margin-bottom:16px;">
+      <div class="field">
+        <label>動作名稱（請標示左側 / 右側）<span class="required">*</span></label>
+        <input type="text" id="motion-name" placeholder="例：肩外展運動(右手)" />
+      </div>
+      <div class="field">
+        <label>計數規則 <span class="required">*</span></label>
+        <input type="text" id="count-rule" placeholder="例：水平線(來回計數1次)" />
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:16px;">
+      <label>建議適應症 <span style="font-weight:400;font-size:11px;color:var(--text3);">（選填）</span></label>
+      <input type="text" id="indication" placeholder="例：五十肩、膝關節運動" />
+    </div>
+    <div class="grid-4" style="margin-bottom:20px;">
+      <div class="field">
+        <label>動作維持時間（秒）<span class="required">*</span></label>
+        <input type="text" id="hold-time" placeholder="例：2" />
+      </div>
+      <div class="field">
+        <label>動作姿態 <span class="required">*</span></label>
+        <select id="posture-type">
+          <option value="">請選擇...</option>
+          <option value="站姿">站姿</option>
+          <option value="坐姿">坐姿</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>維持姿勢判斷 <span class="required">*</span></label>
+        <input type="text" id="posture-judge" placeholder="例：手肘" />
+      </div>
+      <div class="field">
+        <label>影片拍攝方向 <span style="font-weight:400;font-size:11px;color:var(--text3);">（選填）</span></label>
+        <select id="camera-dir">
+          <option value="">請選擇...</option>
+          <option value="正面">正面</option>
+          <option value="側面（左）">側面（左）</option>
+          <option value="側面（右）">側面（右）</option>
+          <option value="背面">背面</option>
+          <option value="斜側面">斜側面</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 動作說明 Step List -->
+    <div class="field">
+      <label>動作拆解說明 <span class="required">*</span> <span style="font-weight:400;color:var(--text3);">（每行一個步驟，依序填寫）</span></label>
+      <div class="step-list" id="step-list"></div>
+      <button class="add-step-btn" onclick="addStep()">＋ 新增步驟</button>
+    </div>
+  </div>
+
+  <!-- 2. 規則設定 -->
+  <div class="card" id="tour-rules">
+    <div class="card-header">
+      <div class="card-stripe" style="background:var(--info)"></div>
+      <h2>動作規則設定</h2>
+      <span class="card-sub">MOTION RULES</span>
+    </div>
+    <div class="rules-grid">
+
+      <div class="rule-card">
+        <div class="rule-badge badge-start">🟢 初始動作規則 <span style="color:var(--danger);font-size:13px;">*</span></div>
+        <div class="rule-list" id="start-rule-list"></div>
+        <button class="add-rule-btn" onclick="addRule('start-rule-list','start','初始動作規則','例：右肩膀40°')">＋ 新增規則</button>
+      </div>
+
+      <div class="rule-card">
+        <div class="rule-badge badge-target">🔵 目標動作規則 <span style="color:var(--danger);font-size:13px;">*</span></div>
+        <div class="rule-list" id="target-rule-list"></div>
+        <button class="add-rule-btn" onclick="addRule('target-rule-list','target','目標動作規則','例：右手肘目標175°','例：當<160°→「手打直一點」')">＋ 新增規則</button>
+      </div>
+
+      <div class="rule-card">
+        <div class="rule-badge badge-error">🔴 常見錯誤動作 <span style="font-weight:400;font-size:11px;color:#A00000;opacity:0.7;">（選填）</span></div>
+        <div class="rule-list" id="error-rule-list"></div>
+        <button class="add-rule-btn" onclick="addRule('error-rule-list','error','常見錯誤動作說明','例：抬手過程中應盡量避免聳肩代償','例：不要聳肩')">＋ 新增說明</button>
+      </div>
+
+      <div class="rule-card">
+        <div class="rule-badge badge-other">📝 其他備注</div>
+        <div class="sub-field">
+          <textarea id="other-notes" placeholder="輸入其他備注..." style="min-height:130px;"></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 3. 影片上傳 + 自動擷取 -->
+  <div class="card" id="tour-video">
+    <div class="card-header">
+      <div class="card-stripe" style="background:var(--accent2)"></div>
+      <h2>影片截圖工具 <span style="font-weight:400;font-size:13px;color:var(--text3);">（選填）</span></h2>
+      <span class="card-sub">VIDEO CAPTURE</span>
+    </div>
+
+    <!-- Initial upload zone -->
+    <div id="video-initial">
+      <div class="video-zone" onclick="triggerVideoUpload()" id="video-drop-zone">
+        <div class="video-icon">🎬</div>
+        <h3>點擊加入影片</h3>
+        <p>支援 MP4、MOV、AVI、WebM 格式</p>
+        <p style="margin-top:6px;">上傳後可拖動時間軸，點擊任一格即可擷取當下畫面</p>
+      </div>
+      <input type="file" id="video-input" accept="video/*" style="display:none;" onchange="handleVideoUpload(event)" />
+    </div>
+
+    <!-- Video player + controls (hidden until upload) -->
+    <div id="video-preview-wrap">
+      <!-- Video element -->
+      <video id="video-el" controls muted playsinline preload="metadata"></video>
+
+      <!-- Controls bar -->
+      <div class="video-controls">
+        <button class="vc-btn" onclick="vcSkip(-5)">-5s</button>
+        <button class="vc-btn" onclick="vcSkip(-1)">-1s</button>
+        <button class="vc-btn" onclick="vcTogglePlay()" id="vc-play-btn">▶ 播放 / 暫停</button>
+        <button class="vc-btn" onclick="vcSkip(1)">+1s</button>
+        <button class="vc-btn" onclick="vcSkip(5)">+5s</button>
+        <span id="vc-time">0:00 / 0:00</span>
+        <div class="vc-speed">
+          <select onchange="setSpeed(this.value)">
+            <option value="1">1x</option>
+            <option value="0.5">0.5x</option>
+            <option value="0.25">0.25x</option>
+          </select>
+        </div>
+        <span class="vc-hint">💡 暫停後點格子即截取當下畫面</span>
+        <button class="vc-btn" onclick="clearVideo()" style="margin-left:auto;color:var(--danger)">✕ 移除影片</button>
+      </div>
+
+      <!-- Timeline thumbnail strip -->
+      <div class="timeline-wrap">
+        <div class="timeline-bar" id="timeline-bar" onclick="seekToClick(event)">
+          <canvas id="timeline-canvas"></canvas>
+          <div class="timeline-needle" id="timeline-needle">
+            <div class="needle-label" id="needle-label">0:00</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--text3);">
+          <span>0:00</span><span id="tl-end">0:00</span>
+        </div>
+      </div>
+
+      <!-- Frame capture slots -->
+      <div>
+        <div class="frame-slots-label">📌 點擊下方格子擷取當下畫面，對應至各圖片欄位：</div>
+        <div class="frame-slots" id="frame-slots"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 截圖上傳（手動） -->
+  <div class="card" id="tour-photos">
+    <div class="card-header">
+      <div class="card-stripe" style="background:var(--accent)"></div>
+      <h2>動作截圖 <span style="font-weight:400;font-size:13px;color:var(--text3);">（選填，可點選上傳檔案、或透過影片截圖工具加入）</span></h2>
+      <span class="card-sub">PHOTO SLOTS</span>
+    </div>
+    <div class="img-upload-row" id="img-row"></div>
+    <p class="hint" style="margin-top:10px;color:var(--text3);font-size:11px;">💡 截圖槽會依照下方規則設定自動新增</p>
+  </div>
+
+</div><!-- /container -->
+
+<!-- FAB Preview -->
+<button class="fab" onclick="togglePreview()">👁 預覽表單</button>
+
+<!-- ── HELP MODAL ── -->
+<div id="help-modal">
+  <div class="help-inner">
+    <div class="help-header">
+      <h3>📖 操作說明</h3>
+      <button class="help-close" onclick="toggleHelpModal()">✕</button>
+    </div>
+    <div class="help-body">
+
+      <div class="help-section">
+        <h4>🚀 完整操作流程（8 步驟）</h4>
+        <div class="help-steps">
+          <div class="help-step">
+            <div class="help-step-num">1</div>
+            <div class="help-step-body"><strong>填寫基本動作資訊</strong><p>填寫申請單位、動作名稱（請標示左/右側）、計數規則、維持時間、動作姿態、維持姿勢判斷。紅色 * 為必填。</p></div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num">2</div>
+            <div class="help-step-body"><strong>填寫動作拆解說明</strong><p>逐行填寫動作步驟，點「＋ 新增步驟」新增，點 ✕ 刪除。</p></div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num">3</div>
+            <div class="help-step-body"><strong>設定初始與目標動作規則</strong><p>填寫初始、目標動作規則（必填）。可視需求在規則下填入「成立條件」與「播報語音」作為系統語音設定。</p></div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num">4</div>
+            <div class="help-step-body"><strong>設定常見錯誤動作（選填）</strong><p>填寫常見錯誤說明及語音提示。</p></div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num">5</div>
+            <div class="help-step-body"><strong>上傳動作截圖（選填）</strong><p>點擊截圖格子上傳圖片，或使用影片截圖工具從影片中截取。截圖格子會自動跟著規則數量增減。</p></div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num">6</div>
+            <div class="help-step-body"><strong>預覽表單</strong><p>點右下角「👁 預覽表單」確認版面與內容正確。</p></div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num">7</div>
+            <div class="help-step-body"><strong>儲存草稿（建議）</strong><p>點頁首「📁 草稿管理」→ 輸入草稿名稱 → 點「儲存」，避免資料遺失。</p></div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num">8</div>
+            <div class="help-step-body"><strong>匯出表單</strong><p>點頁首「⬇ JPG」或「⬇ PDF」按鈕，等待下載完成。<br><em style="color:var(--text3);">匯出需要網路連線。</em></p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <h4>📁 草稿管理說明</h4>
+        <div class="help-steps">
+          <div class="help-step">
+            <div class="help-step-num" style="background:var(--accent3);">💾</div>
+            <div class="help-step-body"><strong>儲存草稿</strong><p>草稿管理 → 輸入名稱 → 點「儲存」。最新草稿排在最上方，並顯示申請單位方便辨識。</p></div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num" style="background:var(--accent3);">📂</div>
+            <div class="help-step-body"><strong>載入草稿</strong><p>點列表中的「📂 載入」，系統會確認後再覆蓋目前內容。</p></div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num" style="background:var(--accent3);">🔗</div>
+            <div class="help-step-body"><strong>跨分點共用</strong><p>點「⬇ 匯出全部草稿」下載 .json 檔案，傳送給其他分點後，對方點「⬆ 匯入草稿檔案」即可載入。</p></div>
+          </div>
+        </div>
+        <div class="help-note warn" style="margin-top:12px;">⚠️ 圖片不會存入草稿，重新載入後需重新上傳。</div>
+        <div class="help-note warn">⚠️ 草稿儲存於瀏覽器本機，清除快取會刪除所有草稿，請定期匯出備份。</div>
+      </div>
+
+      <div class="help-section">
+        <h4>💡 常見問題</h4>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:8px;"><strong>匯出沒反應？</strong>請確認電腦已連線網路，JPG/PDF 匯出需要載入線上套件。</p>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:8px;"><strong>截圖格子自動增加？</strong>正常現象，截圖格子會自動跟著規則數量同步增減。</p>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:0;"><strong>換電腦後草稿不見了？</strong>請先用「⬇ 匯出全部草稿」備份，換電腦後再匯入。</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── DRAFT PANEL ── -->
+<div id="draft-panel">
+  <div class="draft-panel-header">
+    <h3>📁 草稿管理</h3>
+    <button class="draft-close" onclick="toggleDraftPanel()">✕</button>
+  </div>
+  <div class="draft-save-area">
+    <input type="text" id="draft-name-input" placeholder="草稿名稱（可自訂）" />
+    <button class="btn btn-primary" onclick="saveDraft()">儲存</button>
+  </div>
+  <div style="display:flex;gap:8px;padding:0 20px 12px;border-bottom:1.5px solid var(--border);">
+    <button class="btn" onclick="exportAllDrafts()" style="flex:1;font-size:12px;padding:6px 0;background:#EEF5FB;border:1.5px solid var(--accent-mid);color:var(--accent);">⬇ 匯出全部草稿</button>
+    <button class="btn" onclick="importDrafts()" style="flex:1;font-size:12px;padding:6px 0;background:#f0fff8;border:1.5px solid #00875A;color:#00653E;">⬆ 匯入草稿檔案</button>
+    <input type="file" id="draft-import-input" accept=".json" style="display:none;" onchange="handleDraftImport(event)" />
+  </div>
+  <p style="margin:8px 20px 4px;font-size:11px;color:var(--text3);">📋 最新儲存的草稿顯示於最上方</p>
+  <div class="draft-list" id="draft-list"></div>
+</div>
+
+<!-- ── PREVIEW MODAL ── -->
+<div id="preview-modal">
+  <div class="preview-inner">
+    <div class="preview-toolbar">
+      <h2>📋 表單預覽</h2>
+      <button class="preview-close" onclick="togglePreview()">✕ 關閉</button>
+    </div>
+    <div id="preview-content"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  STEP LIST
+// ══════════════════════════════════════════════
+let stepCount = 0;
+
+function addStep(text = '') {
+  stepCount++;
+  const idx = stepCount;
+  const list = document.getElementById('step-list');
+  const item = document.createElement('div');
+  item.className = 'step-item';
+  item.dataset.idx = idx;
+  item.innerHTML = `
+    <div class="step-num">${list.children.length + 1}</div>
+    <input type="text" placeholder="描述此步驟動作..." value="${text}" oninput="renumberSteps()" />
+    <button class="step-del" onclick="removeStep(this)" title="刪除此步驟">✕</button>
+  `;
+  list.appendChild(item);
+  item.querySelector('input').focus();
+  renumberSteps();
+}
+
+function removeStep(btn) {
+  btn.closest('.step-item').remove();
+  renumberSteps();
+}
+
+function renumberSteps() {
+  document.querySelectorAll('#step-list .step-num').forEach((el, i) => el.textContent = i + 1);
+}
+
+function getSteps() {
+  return [...document.querySelectorAll('#step-list .step-item input')]
+    .map(i => i.value.trim()).filter(Boolean);
+}
+
+// init with default steps
+window.addEventListener('DOMContentLoaded', () => {
+  addStep('先從單邊開始比較容易集中注意力');
+  addStep('站姿的話，雙腳與肩同寬');
+  addStep('慢慢向外側舉高到與肩同高或稍微高於肩膀');
+  addStep('速度保持一致');
+  addStep('不要聳肩');
+  initImgSlots();
+  initFrameSlots();
+  renderDraftList();
+  // Initialize dynamic rule lists with one blank entry each
+  addRule('start-rule-list',  'start',  '初始動作規則', '例：右肩膀40°');
+  addRule('target-rule-list', 'target', '目標動作規則', '例：右手肘目標175°', '例：當<160°→「手打直一點」');
+  addRule('error-rule-list',  'error',  '常見錯誤動作說明', '例：抬手過程中應盡量避免聳肩代償', '例：不要聳肩');
+});
+
+// ══════════════════════════════════════════════
+//  IMAGE SLOTS
+// ══════════════════════════════════════════════
+const imgSlotConfig = [
+  { id: 'img-start',  label: '初始動作圖片', caption: '初始動作' },
+  { id: 'img-target', label: '目標動作圖片', caption: '目標動作' },
+];
+
+const imgData = {};
+let extraSlotCount = 0;
+const extraSlots = []; // { id, type, caption, label, ruleListId, ruleIndex }
+
+// ── 根據規則自動同步截圖槽 ──
+function syncSlotsFromRules(listId) {
+  // 決定 type 和 label 前綴
+  const typeMap = {
+    'start-rule-list':  { type: 'start',  captionPrefix: '初始規則',   labelPrefix: '初始動作規則' },
+    'target-rule-list': { type: 'target', captionPrefix: '目標規則',   labelPrefix: '目標動作規則' },
+    'error-rule-list':  { type: 'error',  captionPrefix: '常見錯誤',   labelPrefix: '常見錯誤動作' },
+  };
+  const cfg = typeMap[listId];
+  if (!cfg) return;
+
+  // 移除此 listId 對應的所有舊截圖槽
+  const toRemove = extraSlots.filter(s => s.ruleListId === listId);
+  toRemove.forEach(s => {
+    delete imgData[s.id];
+    const w = document.getElementById(`wrapper-${s.id}`);
+    if (w) w.remove();
+    const fw = document.getElementById(`fwrapper-${s.id}`);
+    if (fw) fw.remove();
+  });
+  extraSlots.splice(0, extraSlots.length, ...extraSlots.filter(s => s.ruleListId !== listId));
+
+  // 依目前規則數量重新建立截圖槽
+  const count = document.querySelectorAll(`#${listId} .rule-item`).length;
+  for (let i = 1; i <= count; i++) {
+    extraSlotCount++;
+    const id = `img-extra-${extraSlotCount}`;
+    const caption = `${cfg.captionPrefix}${i}`;
+    const label   = `${cfg.labelPrefix}${i}`;
+    const isError  = cfg.type === 'error';
+    const borderColor = isError ? '#C82828' : cfg.type === 'start' ? '#00875A' : '#005BAC';
+
+    extraSlots.push({ id, type: cfg.type, caption, label, ruleListId: listId, ruleIndex: i });
+
+    // 建立截圖上傳槽
+    const row = document.getElementById('img-row');
+    const wrapper = document.createElement('div');
+    wrapper.id = `wrapper-${id}`;
+    const slot = document.createElement('div');
+    slot.className = 'img-slot';
+    slot.id = id;
+    slot.style.borderColor = borderColor;
+    slot.innerHTML = `
+      <div class="img-slot-icon">📷</div>
+      <div class="img-slot-label">${label}</div>
+      <button class="img-remove" onclick="removeImg('${id}',event)" style="display:none;">✕</button>
+      <div class="img-from-video-tag">來自影片</div>
+    `;
+    slot.onclick = (e) => { if (!e.target.classList.contains('img-remove')) triggerImgUpload(id); };
+    const cap = document.createElement('div');
+    cap.className = 'img-caption';
+    cap.textContent = caption;
+    wrapper.appendChild(slot);
+    wrapper.appendChild(cap);
+    row.appendChild(wrapper);
+
+    // 建立影片截圖槽
+    const fContainer = document.getElementById('frame-slots');
+    if (fContainer) {
+      const fw = document.createElement('div');
+      fw.id = `fwrapper-${id}`;
+      const fslot = document.createElement('div');
+      fslot.className = 'frame-slot';
+      fslot.id = `fs-extra-${extraSlotCount}`;
+      fslot.title = label;
+      fslot.style.borderColor = borderColor;
+      fslot.innerHTML = `
+        <div class="frame-slot-icon">🎯</div>
+        <div class="frame-slot-lbl">${caption}</div>
+        <button class="frame-capture-btn" onclick="captureFrame('fs-extra-${extraSlotCount}','${id}',event)">📷 擷取此幀</button>
+        <button class="frame-remove-btn" onclick="clearFrame('fs-extra-${extraSlotCount}','${id}',event)">✕</button>
+      `;
+      const fcap = document.createElement('div');
+      fcap.className = 'frame-slot-cap';
+      fcap.textContent = caption;
+      fw.appendChild(fslot);
+      fw.appendChild(fcap);
+      fContainer.appendChild(fw);
+    }
+  }
+}
+
+function initImgSlots() {
+  const row = document.getElementById('img-row');
+  imgSlotConfig.forEach(cfg => {
+    const wrapper = document.createElement('div');
+    const slot = document.createElement('div');
+    slot.className = 'img-slot';
+    slot.id = cfg.id;
+    slot.innerHTML = `
+      <div class="img-slot-icon">📷</div>
+      <div class="img-slot-label">${cfg.label}</div>
+      <button class="img-remove" onclick="removeImg('${cfg.id}',event)">✕</button>
+      <div class="img-from-video-tag">來自影片</div>
+    `;
+    slot.onclick = (e) => { if (!e.target.classList.contains('img-remove')) triggerImgUpload(cfg.id); };
+    const cap = document.createElement('div');
+    cap.className = 'img-caption';
+    cap.textContent = cfg.caption;
+    wrapper.appendChild(slot);
+    wrapper.appendChild(cap);
+    row.appendChild(wrapper);
+  });
+}
+
+function triggerImgUpload(slotId) {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => setSlotImage(slotId, ev.target.result, false);
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
+function setSlotImage(slotId, dataUrl, fromVideo = false) {
+  imgData[slotId] = dataUrl;
+  const slot = document.getElementById(slotId);
+  let img = slot.querySelector('img');
+  if (!img) { img = document.createElement('img'); slot.prepend(img); }
+  img.src = dataUrl;
+  slot.classList.add('has-image');
+  if (fromVideo) slot.classList.add('from-video');
+  else slot.classList.remove('from-video');
+}
+
+function removeImg(slotId, e) {
+  e.stopPropagation();
+  delete imgData[slotId];
+  const slot = document.getElementById(slotId);
+  const img = slot.querySelector('img'); if (img) img.remove();
+  slot.classList.remove('has-image', 'from-video');
+}
+
+// ══════════════════════════════════════════════
+//  VIDEO CAPTURE
+// ══════════════════════════════════════════════
+let videoEl, tlCanvas, tlCtx, thumbnails = [], thumbsReady = false;
+
+// 固定影片截圖槽（初始動作、目標動作）
+const frameSlotConfig = [
+  { id: 'fs-start',  targetSlot: 'img-start',  label: '初始動作', hint: '拍攝初始姿態' },
+  { id: 'fs-target', targetSlot: 'img-target', label: '目標動作', hint: '拍攝目標姿態' },
+];
+
+function initFrameSlots() {
+  const container = document.getElementById('frame-slots');
+  container.innerHTML = '';
+  frameSlotConfig.forEach(cfg => {
+    const wrapper = document.createElement('div');
+    const slot = document.createElement('div');
+    slot.className = 'frame-slot';
+    slot.id = cfg.id;
+    slot.title = cfg.hint;
+    slot.innerHTML = `
+      <div class="frame-slot-icon">🎯</div>
+      <div class="frame-slot-lbl">${cfg.label}</div>
+      <button class="frame-capture-btn" onclick="captureFrame('${cfg.id}','${cfg.targetSlot}',event)">📷 擷取此幀</button>
+      <button class="frame-remove-btn" onclick="clearFrame('${cfg.id}','${cfg.targetSlot}',event)">✕</button>
+    `;
+    const cap = document.createElement('div');
+    cap.className = 'frame-slot-cap';
+    cap.textContent = cfg.label;
+    wrapper.appendChild(slot);
+    wrapper.appendChild(cap);
+    container.appendChild(wrapper);
+  });
+}
+
+function triggerVideoUpload() {
+  document.getElementById('video-input').click();
+}
+
+function handleVideoUpload(e) {
+  const file = e.target.files[0]; if (!file) return;
+  videoEl = document.getElementById('video-el');
+  tlCanvas = document.getElementById('timeline-canvas');
+  tlCtx = tlCanvas.getContext('2d');
+
+  videoEl.src = URL.createObjectURL(file);
+  document.getElementById('video-initial').style.display = 'none';
+  document.getElementById('video-preview-wrap').style.display = 'flex';
+
+  videoEl.addEventListener('loadedmetadata', () => {
+    document.getElementById('tl-end').textContent = formatTime(videoEl.duration);
+    document.getElementById('draft-name-input').placeholder = file.name.replace(/\.[^.]+$/, '');
+    generateTimelineThumbs();
+  }, { once: true });
+
+  videoEl.addEventListener('timeupdate', updateNeedle);
+}
+
+function generateTimelineThumbs() {
+  const dur = videoEl.duration;
+  const SAMPLES = 30;
+  thumbnails = [];
+  thumbsReady = false;
+  let captured = 0;
+
+  const offscreen = document.createElement('canvas');
+  offscreen.width = 80; offscreen.height = 45;
+  const octx = offscreen.getContext('2d');
+
+  function captureSample(i) {
+    if (i >= SAMPLES) {
+      thumbsReady = true;
+      drawTimeline();
+      return;
+    }
+    const t = (i / (SAMPLES - 1)) * dur;
+    videoEl.currentTime = t;
+    const onSeeked = () => {
+      videoEl.removeEventListener('seeked', onSeeked);
+      octx.drawImage(videoEl, 0, 0, 80, 45);
+      thumbnails.push({ t, img: offscreen.toDataURL() });
+      captured++;
+      captureSample(i + 1);
+    };
+    videoEl.addEventListener('seeked', onSeeked);
+  }
+  captureSample(0);
+}
+
+function drawTimeline() {
+  const bar = document.getElementById('timeline-bar');
+  tlCanvas.width = bar.clientWidth;
+  tlCanvas.height = bar.clientHeight;
+  if (!thumbsReady || !thumbnails.length) return;
+
+  thumbnails.forEach((th, i) => {
+    const img = new Image();
+    img.onload = () => {
+      const x = (i / (thumbnails.length - 1)) * tlCanvas.width;
+      const w = tlCanvas.width / thumbnails.length + 2;
+      tlCtx.drawImage(img, x - w / 2, 0, w, tlCanvas.height);
+    };
+    img.src = th.img;
+  });
+}
+
+function seekToClick(e) {
+  if (!videoEl) return;
+  const bar = document.getElementById('timeline-bar');
+  const rect = bar.getBoundingClientRect();
+  const ratio = (e.clientX - rect.left) / rect.width;
+  videoEl.currentTime = ratio * videoEl.duration;
+}
+
+function updateNeedle() {
+  if (!videoEl || !videoEl.duration) return;
+  const needle = document.getElementById('timeline-needle');
+  const pct = (videoEl.currentTime / videoEl.duration) * 100;
+  needle.style.left = pct + '%';
+  document.getElementById('needle-label').textContent = formatTime(videoEl.currentTime);
+  document.getElementById('vc-time').textContent = `${formatTime(videoEl.currentTime)} / ${formatTime(videoEl.duration)}`;
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+function vcTogglePlay() {
+  if (!videoEl) return;
+  if (videoEl.paused) { videoEl.play(); }
+  else { videoEl.pause(); }
+  // Label always stays "播放 / 暫停" — state shown by browser's own video indicator
+}
+
+function vcSkip(s) { if (videoEl) videoEl.currentTime = Math.max(0, Math.min(videoEl.duration, videoEl.currentTime + s)); }
+function setSpeed(v) { if (videoEl) videoEl.playbackRate = parseFloat(v); }
+
+function captureFrame(frameSlotId, targetSlotId, e) {
+  e.stopPropagation();
+  if (!videoEl) return;
+  videoEl.pause();
+  // button label stays as-is
+
+  const cap = document.createElement('canvas');
+  cap.width = videoEl.videoWidth || 640;
+  cap.height = videoEl.videoHeight || 360;
+  cap.getContext('2d').drawImage(videoEl, 0, 0);
+  const dataUrl = cap.toDataURL('image/jpeg', 0.92);
+
+  // Show in frame slot
+  const slot = document.getElementById(frameSlotId);
+  let img = slot.querySelector('img');
+  if (!img) { img = document.createElement('img'); slot.prepend(img); }
+  img.src = dataUrl;
+  slot.classList.add('captured');
+
+  // Fill into photo slot
+  setSlotImage(targetSlotId, dataUrl, true);
+  const lbl = document.getElementById(frameSlotId)?.querySelector('.frame-slot-lbl')?.textContent || frameSlotId;
+  showToast(`✅ 已擷取至「${lbl}」`);
+}
+
+function clearFrame(frameSlotId, targetSlotId, e) {
+  e.stopPropagation();
+  const slot = document.getElementById(frameSlotId);
+  const img = slot.querySelector('img'); if (img) img.remove();
+  slot.classList.remove('captured');
+  removeImg(targetSlotId, new Event('click'));
+}
+
+
+
+function clearVideo() {
+  if (videoEl) { videoEl.pause(); videoEl.src = ''; }
+  document.getElementById('video-initial').style.display = 'block';
+  document.getElementById('video-preview-wrap').style.display = 'none';
+  document.getElementById('video-input').value = '';
+  thumbnails = []; thumbsReady = false;
+  // clear all frame slots (fixed + dynamic)
+  document.querySelectorAll('.frame-slot').forEach(slot => {
+    const img = slot.querySelector('img'); if (img) img.remove();
+    slot.classList.remove('captured');
+  });
+}
+
+// ══════════════════════════════════════════════
+//  DYNAMIC RULE LISTS
+// ══════════════════════════════════════════════
+// type: 'start' | 'target' | 'error'
+// hasHint: whether this rule type has a secondary hint field
+
+function addRule(listId, type, label, placeholderMain, placeholderHint = null, mainVal = '', hintVal = '') {
+  const list = document.getElementById(listId);
+  const num = list.children.length + 1;
+  const item = document.createElement('div');
+  item.className = 'rule-item';
+  item.dataset.type = type;
+
+  // hintVal 格式：'條件||語音' 或舊格式直接當語音
+  const hintParts = hintVal.includes('||') ? hintVal.split('||') : ['', hintVal];
+  const condVal  = hintParts[0] || '';
+  const voiceVal = hintParts[1] || '';
+
+  const hintRow = placeholderHint ? `
+    <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.5px;margin-top:10px;margin-bottom:6px;text-transform:uppercase;">系統語音設定</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">成立條件</div>
+        <input type="text" class="rule-cond" placeholder="例：當角度 < 160°" value="${condVal.replace(/"/g,'&quot;')}" style="font-size:12px;color:var(--text2);" />
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">播報語音</div>
+        <input type="text" class="rule-hint" placeholder="例：手打直一點" value="${voiceVal.replace(/"/g,'&quot;')}" style="font-size:12px;color:var(--text2);" />
+      </div>
+    </div>` : '';
+
+  item.innerHTML = `
+    <div class="rule-item-header">
+      <span class="rule-item-num">${label} ${num}</span>
+      <button class="rule-item-del" onclick="removeRule(this, '${listId}')" title="刪除">✕</button>
+    </div>
+    <input type="text" class="rule-main" placeholder="${placeholderMain}" value="${mainVal.replace(/"/g,'&quot;')}" />
+    ${hintRow}
+  `;
+  list.appendChild(item);
+  item.querySelector('.rule-main').focus();
+  syncSlotsFromRules(listId);
+}
+
+function removeRule(btn, listId) {
+  btn.closest('.rule-item').remove();
+  renumberRules(listId);
+  syncSlotsFromRules(listId);
+}
+
+function renumberRules(listId) {
+  const list = document.getElementById(listId);
+  [...list.querySelectorAll('.rule-item-num')].forEach((el, i) => {
+    el.textContent = el.textContent.replace(/\d+$/, i + 1);
+  });
+}
+
+function getRules(listId) {
+  return [...document.querySelectorAll(`#${listId} .rule-item`)].map(item => {
+    const main  = item.querySelector('.rule-main')?.value.trim() || '';
+    const cond  = item.querySelector('.rule-cond')?.value.trim() || '';
+    const voice = item.querySelector('.rule-hint')?.value.trim() || '';
+    const hint  = (cond || voice) ? `${cond}||${voice}` : '';
+    return { main, hint };
+  }).filter(r => r.main || r.hint);
+}
+
+function setRules(listId, type, label, placeholderMain, placeholderHint, rules) {
+  document.getElementById(listId).innerHTML = '';
+  if (rules && rules.length) {
+    rules.forEach(r => addRule(listId, type, label, placeholderMain, placeholderHint, r.main || '', r.hint || ''));
+  } else {
+    addRule(listId, type, label, placeholderMain, placeholderHint);
+  }
+}
+
+// ══════════════════════════════════════════════
+//  FORM DATA
+// ══════════════════════════════════════════════
+function getFormData() {
+  return {
+    applyUnit: document.getElementById('apply-unit').value || '',
+    name: document.getElementById('motion-name').value || '（未填寫）',
+    indication: document.getElementById('indication').value || '',
+    countRule: document.getElementById('count-rule').value || '',
+    steps: getSteps(),
+    holdTime: document.getElementById('hold-time').value || '',
+    postureType: document.getElementById('posture-type').value || '',
+    postureJudge: document.getElementById('posture-judge').value || '',
+    cameraDir: document.getElementById('camera-dir').value || '',
+    startRules: getRules('start-rule-list'),
+    targetRules: getRules('target-rule-list'),
+    errorRules: getRules('error-rule-list'),
+    otherNotes: document.getElementById('other-notes').value || '',
+  };
+}
+
+function setFormData(d) {
+  document.getElementById('apply-unit').value = d.applyUnit || '';
+  document.getElementById('motion-name').value = d.name || '';
+  document.getElementById('indication').value = d.indication || '';
+  document.getElementById('count-rule').value = d.countRule || '';
+  document.getElementById('hold-time').value = d.holdTime || '';
+  document.getElementById('posture-type').value = d.postureType || '';
+  document.getElementById('posture-judge').value = d.postureJudge || '';
+  document.getElementById('camera-dir').value = d.cameraDir || '';
+  document.getElementById('other-notes').value = d.otherNotes || '';
+
+  // Restore dynamic rules
+  setRules('start-rule-list', 'start', '初始動作規則', '例：右肩膀40°', null, d.startRules || []);
+  setRules('target-rule-list', 'target', '目標動作規則', '例：右手肘目標175°', '例：當<160°→「手打直一點」', d.targetRules || []);
+  setRules('error-rule-list', 'error', '常見錯誤動作說明', '例：抬手過程中應盡量避免聳肩代償', '例：不要聳肩', d.errorRules || []);
+
+  // steps
+  document.getElementById('step-list').innerHTML = '';
+  stepCount = 0;
+  (d.steps || []).forEach(s => addStep(s));
+}
+
+// ══════════════════════════════════════════════
+//  DRAFT SAVE / LOAD
+// ══════════════════════════════════════════════
+const DRAFT_KEY = 'motion_drafts_v2';
+
+function getDrafts() {
+  try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || '[]'); } catch { return []; }
+}
+function setDrafts(arr) { localStorage.setItem(DRAFT_KEY, JSON.stringify(arr)); }
+
+function saveDraft() {
+  const nameInput = document.getElementById('draft-name-input');
+  const name = nameInput.value.trim() || document.getElementById('motion-name').value.trim() || `草稿 ${new Date().toLocaleString('zh-TW')}`;
+  const d = getFormData();
+  const draft = {
+    id: Date.now(),
+    name,
+    savedAt: new Date().toLocaleString('zh-TW'),
+    data: d,
+  };
+  const drafts = getDrafts();
+  drafts.unshift(draft);
+  if (drafts.length > 30) drafts.pop();
+  try {
+    setDrafts(drafts);
+  } catch(e) {
+    alert('草稿儲存失敗：空間不足，請先刪除舊草稿（圖片請重新上傳）');
+    return;
+  }
+  nameInput.value = '';
+  renderDraftList();
+  showToast(`💾 草稿「${name}」已儲存（注意：圖片不會存入草稿）`);
+}
+
+function loadDraft(id) {
+  const drafts = getDrafts();
+  const draft = drafts.find(d => d.id === id);
+  if (!draft) return;
+  const currentName = document.getElementById('motion-name').value.trim();
+  const msg = currentName
+    ? `確定要載入草稿「${draft.name}」？\n目前編輯中的「${currentName}」將會被覆蓋。`
+    : `確定要載入草稿「${draft.name}」？\n目前的內容將會被覆蓋。`;
+  if (!confirm(msg)) return;
+  setFormData(draft.data);
+  // restore images
+  Object.keys(imgData).forEach(k => removeImg(k, new Event('click')));
+  if (draft.imgs) {
+    Object.entries(draft.imgs).forEach(([slotId, url]) => {
+      if (url) setSlotImage(slotId, url, false);
+    });
+  }
+  toggleDraftPanel();
+  showToast(`📂 已載入草稿「${draft.name}」`);
+}
+
+function deleteDraft(id) {
+  const drafts = getDrafts().filter(d => d.id !== id);
+  setDrafts(drafts);
+  renderDraftList();
+  showToast('🗑️ 草稿已刪除');
+}
+
+function renderDraftList() {
+  const list = document.getElementById('draft-list');
+  const drafts = getDrafts();
+  if (!drafts.length) {
+    list.innerHTML = '<div class="draft-empty">尚無儲存的草稿<br>填寫完成後點「儲存」即可</div>';
+    return;
+  }
+  list.innerHTML = '';
+  drafts.forEach(draft => {
+    const item = document.createElement('div');
+    item.className = 'draft-item';
+    item.innerHTML = `
+      <div class="draft-item-name">${draft.name}</div>
+      ${draft.data?.applyUnit ? `<div style="font-size:11px;color:var(--accent);font-weight:600;margin-top:2px;">🏥 ${draft.data.applyUnit}</div>` : ''}
+      <div class="draft-item-meta">儲存時間：${draft.savedAt}</div>
+      <div class="draft-item-actions">
+        <button class="draft-load" onclick="loadDraft(${draft.id})">📂 載入</button>
+        <button class="draft-del" onclick="exportSingleDraft(${draft.id})" style="background:#EEF5FB;color:var(--accent);border-color:var(--accent-mid);">⬇ 匯出</button>
+        <button class="draft-del" onclick="deleteDraft(${draft.id})">🗑️ 刪除</button>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+// ── 匯出全部草稿 ──
+function exportAllDrafts() {
+  const drafts = getDrafts();
+  if (!drafts.length) { alert('目前沒有任何草稿可以匯出'); return; }
+  const json = JSON.stringify({ version: 'rcs-v7', exportedAt: new Date().toLocaleString('zh-TW'), drafts }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `RCS草稿_${new Date().toLocaleDateString('zh-TW').replace(/\//g,'-')}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  showToast(`✅ 已匯出 ${drafts.length} 筆草稿`);
+}
+
+// ── 匯出單筆草稿 ──
+function exportSingleDraft(id) {
+  const draft = getDrafts().find(d => d.id === id);
+  if (!draft) return;
+  const json = JSON.stringify({ version: 'rcs-v7', exportedAt: new Date().toLocaleString('zh-TW'), drafts: [draft] }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `RCS草稿_${draft.name.replace(/[\\/:*?"<>|]/g,'_')}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  showToast(`✅ 已匯出「${draft.name}」`);
+}
+
+// ── 開啟匯入檔案選擇 ──
+function importDrafts() {
+  document.getElementById('draft-import-input').click();
+}
+
+// ── 處理匯入 ──
+function handleDraftImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const parsed = JSON.parse(ev.target.result);
+      if (!parsed.drafts || !Array.isArray(parsed.drafts)) throw new Error('格式錯誤');
+      const incoming = parsed.drafts;
+      const existing = getDrafts();
+      // 避免重複（以 id 判斷）
+      const existingIds = new Set(existing.map(d => d.id));
+      const newOnes = incoming.filter(d => !existingIds.has(d.id));
+      const merged = [...newOnes, ...existing].slice(0, 30);
+      setDrafts(merged);
+      renderDraftList();
+      showToast(`✅ 已匯入 ${newOnes.length} 筆草稿${incoming.length - newOnes.length > 0 ? `（${incoming.length - newOnes.length} 筆重複略過）` : ''}`);
+    } catch(err) {
+      alert('匯入失敗：檔案格式不正確，請確認是由本系統匯出的 .json 檔案');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function toggleHelpModal() {
+  const m = document.getElementById('help-modal');
+  m.classList.toggle('open');
+}
+// Close help modal on backdrop click
+document.getElementById('help-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+function toggleDraftPanel() {
+  const panel = document.getElementById('draft-panel');
+  if (panel.style.display === 'flex') {
+    panel.style.display = 'none';
+  } else {
+    renderDraftList();
+    panel.style.display = 'flex';
+  }
+}
+
+// Auto-save to localStorage every 30s（不儲存圖片，避免超出配額）
+setInterval(() => {
+  try {
+    const d = getFormData();
+    if (d.name && d.name !== '（未填寫）') {
+      localStorage.setItem('motion_autosave', JSON.stringify({ data: d, savedAt: Date.now() }));
+    }
+  } catch(e) {}
+}, 30000);
+
+// ══════════════════════════════════════════════
+//  PREVIEW HTML
+// ══════════════════════════════════════════════
+function generatePreviewHTML(d) {
+  const imgHTML = (id, label) => {
+    const src = imgData[id];
+    return src
+      ? `<div style="text-align:center;"><div style="height:110px;border-radius:6px;border:1px solid #ddd;overflow:hidden;background:#f0f4f8;"><img src="${src}" style="width:100%;height:100%;object-fit:contain;display:block;"/></div><div style="font-size:10px;color:#666;margin-top:4px;">${label}</div></div>`
+      : `<div style="text-align:center;"><div style="height:110px;background:#f5f0ea;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:11px;border:1px dashed #ddd;">無圖片</div><div style="font-size:10px;color:#666;margin-top:4px;">${label}</div></div>`;
+  };
+
+  const stepsHTML = (d.steps || []).map((s, i) =>
+    `<li style="margin-bottom:4px;padding-left:2px;">${s}</li>`
+  ).join('');
+
+  return `<div style="border:2px solid #005BAC;border-radius:10px;overflow:hidden;font-size:12px;font-family:'Noto Sans TC',sans-serif;line-height:1.6;">
+    ${d.applyUnit ? `<div style="background:#EEF5FB;padding:6px 14px;font-size:11px;color:#2E4E6E;border-bottom:1px solid #C4D9EE;"><b>申請單位：</b>${d.applyUnit}</div>` : ''}
+    <div style="display:grid;grid-template-columns:180px 1fr;border-bottom:2px solid #005BAC;">
+      <div style="background:#005BAC;color:white;padding:14px;font-weight:700;font-size:15px;display:flex;flex-direction:column;justify-content:center;gap:6px;">
+        <div>動作名稱：${d.name}</div>
+        ${d.indication ? `<div style="font-size:11px;font-weight:400;opacity:0.85;">建議適應症：${d.indication}</div>` : ''}
+      </div>
+      <div style="background:#EEF5FB;padding:12px;">
+        <strong style="color:#2E4E6E;">動作拆解說明：</strong>
+        ${d.steps && d.steps.length ? `<ol style="margin:6px 0 0 18px;padding:0;">${stepsHTML}</ol>` : '（未填寫）'}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:180px 1fr 1fr 1fr 140px;border-bottom:1px solid #C4D9EE;background:#EEF5FB;">
+      <div style="padding:8px;border-right:1px solid #C4D9EE;font-weight:700;color:#005BAC;">計數規則</div>
+      <div style="padding:8px;border-right:1px solid #C4D9EE;font-weight:700;color:#005BAC;">初始動作規則</div>
+      <div style="padding:8px;border-right:1px solid #C4D9EE;font-weight:700;color:#005BAC;">目標動作規則</div>
+      <div style="padding:8px;border-right:1px solid #C4D9EE;font-weight:700;color:#005BAC;">常見錯誤說明</div>
+      <div style="padding:8px;font-weight:700;color:#005BAC;">動作資訊</div>
+    </div>
+    <div style="display:grid;grid-template-columns:180px 1fr 1fr 1fr 140px;border-bottom:1px solid #C4D9EE;min-height:130px;">
+      <div style="padding:8px;border-right:1px solid #C4D9EE;font-size:12px;color:#0C1C2E;">${d.countRule || ''}</div>
+      <div style="padding:8px;border-right:1px solid #C4D9EE;">
+        ${(d.startRules||[]).map((r,i) => r.main ? `<div${i>0?' style="margin-top:6px;"':''}><span style="background:#e8f8f0;border:1px solid #00875A;border-radius:4px;padding:1px 5px;font-size:10px;color:#00653E;margin-right:4px;">規則${i+1}</span>${r.main}</div>` : '').join('')}
+      </div>
+      <div style="padding:8px;border-right:1px solid #C4D9EE;">
+        ${(d.targetRules||[]).map((r,i) => {
+          if (!r.main) return '';
+          const parts = (r.hint||'').split('||');
+          const cond = parts[0]?.trim(); const voice = parts[1]?.trim();
+          const voiceBlock = (cond||voice) ? `
+            <div style="color:#003E7E;margin-left:8px;margin-top:3px;font-size:10px;font-weight:700;letter-spacing:0.3px;">系統語音設定</div>
+            ${cond  ? `<div style="color:#003E7E;margin-left:8px;font-size:11px;"><b>成立條件：</b>${cond}</div>` : ''}
+            ${voice ? `<div style="color:#003E7E;margin-left:8px;font-size:11px;"><b>播報語音：</b>${voice}</div>` : ''}` : '';
+          return `<div${i>0?' style="margin-top:6px;"':''}><span style="background:#E6F1FA;border:1px solid #005BAC;border-radius:4px;padding:1px 5px;font-size:10px;color:#003E7E;margin-right:4px;">規則${i+1}</span>${r.main}</div>${voiceBlock}`;
+        }).join('')}
+      </div>
+      <div style="padding:8px;border-right:1px solid #C4D9EE;">
+        ${(d.errorRules||[]).map((r,i) => {
+          if (!r.main) return '';
+          const parts = (r.hint||'').split('||');
+          const cond = parts[0]?.trim(); const voice = parts[1]?.trim();
+          const voiceBlock = (cond||voice) ? `
+            <div style="color:#A00000;margin-left:8px;margin-top:3px;font-size:10px;font-weight:700;letter-spacing:0.3px;">系統語音設定</div>
+            ${cond  ? `<div style="color:#A00000;margin-left:8px;font-size:11px;"><b>成立條件：</b>${cond}</div>` : ''}
+            ${voice ? `<div style="color:#A00000;margin-left:8px;font-size:11px;"><b>播報語音：</b>${voice}</div>` : ''}` : '';
+          return `<div${i>0?' style="margin-top:6px;"':''}><span style="background:#fff0f0;border:1px solid #C82828;border-radius:4px;padding:1px 5px;font-size:10px;color:#A00000;margin-right:4px;">說明${i+1}</span>${r.main}</div>${voiceBlock}`;
+        }).join('')}
+      </div>
+      <div style="padding:8px;font-size:11px;">
+        ${d.holdTime ? `<div><b>維持時間：</b>${d.holdTime}</div>` : ''}
+        ${d.postureType ? `<div style="margin-top:4px;"><b>姿勢：</b>${d.postureType}</div>` : ''}
+        ${d.postureJudge ? `<div style="margin-top:4px;"><b>維持姿勢判斷：</b>${d.postureJudge}</div>` : ''}
+        ${d.cameraDir ? `<div style="margin-top:4px;"><b>拍攝：</b>${d.cameraDir}</div>` : ''}
+        ${d.otherNotes ? `<div style="margin-top:8px;border-top:1px solid #C4D9EE;padding-top:6px;"><div style="font-size:10px;font-weight:700;color:#2E4E6E;margin-bottom:3px;">其他備註</div><div style="color:#2E4E6E;">${d.otherNotes}</div></div>` : ''}
+      </div>
+    </div>
+    <div style="padding:12px;display:flex;flex-wrap:wrap;gap:10px;background:#F3F8FD;">
+      ${[
+        ...imgSlotConfig.map(s => ({ id: s.id, caption: s.caption })),
+        ...extraSlots.map(s => ({ id: s.id, caption: s.caption }))
+      ].map(s => imgHTML(s.id, s.caption)).join('')}
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════
+//  PREVIEW TOGGLE
+// ══════════════════════════════════════════════
+function togglePreview() {
+  const modal = document.getElementById('preview-modal');
+  if (modal.style.display === 'none' || !modal.style.display) {
+    document.getElementById('preview-content').innerHTML = generatePreviewHTML(getFormData());
+    modal.style.display = 'block';
+  } else {
+    modal.style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════════════════
+async function buildCanvas() {
+  const d = getFormData();
+  const div = document.createElement('div');
+  div.style.cssText = 'position:fixed;left:-9999px;top:0;background:#fff;padding:20px;width:1200px;font-family:"Microsoft JhengHei","微軟正黑體","PingFang TC",sans-serif;';
+  div.innerHTML = generatePreviewHTML(d);
+  document.body.appendChild(div);
+  // 等待圖片載入
+  await Promise.all([...div.querySelectorAll('img')].map(img =>
+    new Promise(r => { img.complete ? r() : (img.onload = r, img.onerror = r); })
+  ));
+  await new Promise(r => setTimeout(r, 300));
+  const canvas = await html2canvas(div, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' });
+  document.body.removeChild(div);
+  return canvas;
+}
+
+async function exportJPG(btn) {
+  btn.classList.add('processing');
+  try {
+    showToast('⏳ 產生 JPG 中...');
+    const canvas = await buildCanvas();
+    const a = document.createElement('a');
+    a.download = `動作表單_${document.getElementById('motion-name').value || '未命名'}.jpg`;
+    a.href = canvas.toDataURL('image/jpeg', 0.95);
+    a.click();
+    showToast('✅ JPG 匯出成功');
+  } catch(e) { alert('JPG 匯出失敗：' + (e?.message || e)); }
+  btn.classList.remove('processing');
+}
+
+async function exportPDF(btn) {
+  btn.classList.add('processing');
+  try {
+    showToast('⏳ 產生 PDF 中...');
+    const canvas = await buildCanvas();
+    const { jsPDF } = window.jspdf;
+    const data = canvas.toDataURL('image/jpeg', 0.95);
+    const cw = canvas.width, ch = canvas.height;
+    const isLandscape = cw >= ch;
+    const pdf = new jsPDF({ orientation: isLandscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+    const pw = pdf.internal.pageSize.getWidth();
+    const ph = pdf.internal.pageSize.getHeight();
+    const totalH = pw * (ch / cw);
+    if (totalH <= ph * 1.05) {
+      // 單頁
+      const scale = Math.min(pw / cw, ph / ch);
+      const iw = cw * scale, ih = ch * scale;
+      pdf.addImage(data, 'JPEG', (pw - iw) / 2, (ph - ih) / 2, iw, ih);
+    } else {
+      // 多頁分割
+      const stripPx = Math.floor(cw * (ph / pw));
+      let pageNum = 0;
+      for (let srcY = 0; srcY < ch; srcY += stripPx) {
+        if (pageNum++ > 0) pdf.addPage();
+        const stripH = Math.min(stripPx, ch - srcY);
+        const strip = document.createElement('canvas');
+        strip.width = cw; strip.height = stripH;
+        strip.getContext('2d').drawImage(canvas, 0, srcY, cw, stripH, 0, 0, cw, stripH);
+        const rH = pw * (stripH / cw);
+        pdf.addImage(strip.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pw, rH);
+      }
+    }
+    pdf.save(`動作表單_${document.getElementById('motion-name').value || '未命名'}.pdf`);
+    showToast('✅ PDF 匯出成功');
+  } catch(e) { alert('PDF 匯出失敗：' + (e?.message || e)); }
+  btn.classList.remove('processing');
+}
+
+// ══════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Window resize: redraw timeline
+window.addEventListener('resize', () => { if (thumbsReady) drawTimeline(); });
+</script>
+
+<!-- ════════════ TOUR OVERLAY ════════════ -->
+<div id="tour-overlay">
+  <div id="tour-mask"></div>
+  <div id="tour-spotlight"></div>
+  <div id="tour-bubble">
+    <div class="tour-bubble-head">
+      <span class="tour-bubble-step" id="tour-step-label">1 / 6</span>
+      <span class="tour-bubble-title" id="tour-bubble-title"></span>
+    </div>
+    <div class="tour-bubble-body">
+      <p id="tour-bubble-desc"></p>
+      <div class="tour-bubble-note" id="tour-bubble-note" style="display:none;"></div>
+    </div>
+    <div class="tour-bubble-nav">
+      <div class="tour-dots" id="tour-dots"></div>
+      <button class="tour-nav-btn" id="tour-prev" onclick="tourStep(-1)">← 上一步</button>
+      <button class="tour-nav-btn" id="tour-next" onclick="tourStep(1)">下一步 →</button>
+      <button id="tour-skip" onclick="endTour()">跳過</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  ONBOARDING
+// ════════════════════════════════════════
+
+const TOUR_STEPS = [
+  {
+    target: '#tour-basic',
+    title: '基本動作資訊',
+    desc: '請填入動作基本資訊：申請單位、動作名稱（標示左/右側）、計數規則、維持時間。紅色 * 為必填。',
+    note: '💡 動作名稱請標示左右側，例：肩外展運動(右手)',
+    pos: 'bottom',
+  },
+  {
+    target: '#tour-rules',
+    title: '動作規則設定',
+    desc: '設定初始與目標動作規則（必填）。可新增多條規則，每條規則可設定系統語音的「成立條件」與「播報語音」。',
+    note: '💡 常見錯誤動作為選填',
+    pos: 'top',
+  },
+  {
+    target: '#tour-video',
+    title: '影片截圖工具（選填）',
+    desc: '上傳動作影片，暫停在目標畫面，點擊對應截圖格子即可擷取並自動填入。',
+    note: '⚠️ 選填，也可在下方截圖區直接上傳圖片',
+    noteType: 'warn',
+    pos: 'top',
+  },
+  {
+    target: '#tour-photos',
+    title: '動作截圖（選填）',
+    desc: '截圖格子隨規則數量自動增減。可直接上傳圖片，或透過影片截圖工具擷取。',
+    pos: 'top',
+  },
+  {
+    target: '.fab',
+    title: '預覽表單',
+    desc: '匯出前點擊確認版面與內容是否正確。',
+    pos: 'top',
+  },
+  {
+    targets: ['#tour-btn', '.btn-jpg', '.btn-pdf'],
+    title: '大功告成！',
+    desc: '點頁首「⬇ JPG」或「⬇ PDF」匯出（需網路）。可用「📁 草稿管理」儲存進度或跨分點共用。',
+    note: '✅ 隨時可點「🧭 新手導覽」重新啟動',
+  },
+];
+
+let tourIdx = 0;
+
+// ── Tour ──
+function startTour() {
+  tourIdx = 0;
+  buildDots();
+  document.getElementById('tour-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  renderTourStep();
+}
+
+function endTour() {
+  const overlay = document.getElementById('tour-overlay');
+  overlay.classList.remove('active');
+  document.body.style.overflow = '';
+  // Remove highlight from any card
+  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+  const mask = document.getElementById('tour-mask');
+  if (mask) mask.style.clipPath = 'polygon(0% 0%, 0% 100%, 0% 100%, 0% 0%)';
+}
+
+function tourStep(dir) {
+  tourIdx += dir;
+  if (tourIdx < 0) tourIdx = 0;
+  if (tourIdx >= TOUR_STEPS.length) { endTour(); return; }
+  renderTourStep();
+}
+
+function renderTourStep() {
+  const step = TOUR_STEPS[tourIdx];
+  const total = TOUR_STEPS.length;
+  const isLast = tourIdx === total - 1;
+
+  // Update text
+  document.getElementById('tour-step-label').textContent = `${tourIdx + 1} / ${total}`;
+  document.getElementById('tour-bubble-title').textContent = step.title;
+  document.getElementById('tour-bubble-desc').textContent = step.desc;
+  const noteEl = document.getElementById('tour-bubble-note');
+  if (step.note) {
+    noteEl.textContent = step.note;
+    noteEl.className = 'tour-bubble-note' + (step.noteType === 'warn' ? ' warn' : '');
+    noteEl.style.display = '';
+  } else {
+    noteEl.style.display = 'none';
+  }
+
+  // Prev / Next buttons
+  const prevBtn = document.getElementById('tour-prev');
+  const nextBtn = document.getElementById('tour-next');
+  prevBtn.style.display = tourIdx === 0 ? 'none' : '';
+  nextBtn.textContent = isLast ? '✓ 完成導覽' : '下一步 →';
+
+  // Update dots
+  updateDots();
+
+  // Spotlight target(s) — support single target or targets array
+  const targetKeys = step.targets || [step.target];
+  const targetEls = targetKeys.map(s => document.querySelector(s)).filter(Boolean);
+  if (!targetEls.length) return;
+
+  // Remove highlight from previous
+  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+  targetEls.forEach(el => el.classList.add('tour-highlight'));
+
+  // Scroll first target into view
+  targetEls[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // After scroll settles, position spotlight (union bounding box) + mask
+  setTimeout(() => positionTourMulti(targetEls), 380);
+}
+
+function positionTourMulti(els) {
+  const GAP = 8;
+  const vw  = window.innerWidth;
+  const vh  = window.innerHeight;
+
+  // Compute union bounding box across all elements
+  let minL = Infinity, minT = Infinity, maxR = -Infinity, maxB = -Infinity;
+  els.forEach(el => {
+    const r = el.getBoundingClientRect();
+    minL = Math.min(minL, r.left);
+    minT = Math.min(minT, r.top);
+    maxR = Math.max(maxR, r.right);
+    maxB = Math.max(maxB, r.bottom);
+  });
+
+  // Spotlight around union box
+  const sp = document.getElementById('tour-spotlight');
+  sp.style.left   = (minL - GAP) + 'px';
+  sp.style.top    = (minT - GAP) + 'px';
+  sp.style.width  = (maxR - minL + GAP * 2) + 'px';
+  sp.style.height = (maxB - minT + GAP * 2) + 'px';
+
+  // Dark mask with cutout
+  setDarkPanels(
+    minT - GAP,
+    vh - (maxB + GAP),
+    minT - GAP, minL - GAP,
+    minT - GAP, maxR + GAP
+  );
+  // Bubble is CSS-centered — no JS needed
+}
+
+function setDarkPanels(topH, botH, leftTop, leftW, rightTop, rightLeft) {
+  // Use clip-path to cut a transparent hole for the spotlight
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const x1 = Math.max(0, leftW);
+  const y1 = Math.max(0, topH);
+  const x2 = Math.max(0, rightLeft);
+  const y2 = vh - Math.max(0, botH);
+  const mask = document.getElementById('tour-mask');
+  mask.style.clipPath = `polygon(
+    0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%,
+    ${x1}px ${y1}px, ${x1}px ${y2}px, ${x2}px ${y2}px, ${x2}px ${y1}px, ${x1}px ${y1}px
+  )`;
+}
+
+function buildDots() {
+  const container = document.getElementById('tour-dots');
+  container.innerHTML = '';
+  TOUR_STEPS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'tour-dot';
+    d.onclick = () => { tourIdx = i; renderTourStep(); };
+    d.style.cursor = 'pointer';
+    container.appendChild(d);
+  });
+}
+
+function updateDots() {
+  document.querySelectorAll('.tour-dot').forEach((d, i) => {
+    d.className = 'tour-dot' + (i < tourIdx ? ' done' : i === tourIdx ? ' active' : '');
+  });
+}
+
+
+
+// Close dark panels on overlay click (allow interaction outside bubble)
+const tourMaskEl = document.getElementById('tour-mask');
+if (tourMaskEl) tourMaskEl.addEventListener('click', endTour);
+</script>
+
+</body>
+</html>
